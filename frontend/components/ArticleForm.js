@@ -34,15 +34,13 @@ export default function ArticleForm(props) {
         postArticle(values);
       }
       setValues(initialFormValues);
-      setCurrentArticleId(null);
+      setCurrentArticleId();
     };
-  }
 
   const isDisabled = () => {
     // Assuming `values` contains the form data as an object, e.g.,
     // { title: "some text", body: "some content" }
-    
-    if (!values.title || !values.body) {
+    if (!values.title || !values.text || !values.topic) {
       // If either title or body is empty, disable the form
       return true;
     }
@@ -80,11 +78,11 @@ export default function ArticleForm(props) {
       </select>
       <div className="button-group">
         <button disabled={isDisabled()} id="submitArticle">Submit</button>
-        <button onClick={ () => setCurrentArticleID(null)}>Cancel edit</button>
+        <button onClick={ () => setCurrentArticleId(null)}>Cancel edit</button>
       </div>
     </form>
   )
-
+}
 
 // 🔥 No touchy: ArticleForm expects the following props exactly:
 ArticleForm.propTypes = {

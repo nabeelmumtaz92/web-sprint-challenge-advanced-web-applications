@@ -2,54 +2,45 @@ import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import PT from 'prop-types';
 
-export default function Articles({
-  articles,
-  getArticles,
-  deleteArticle,
-  setCurrentArticleId,
-}) {
+export default function Articles({ articles, getArticles, deleteArticle, setCurrentArticleId, currentArticleId}) {
   const token = localStorage.getItem('token');
 
-  // If no token exists, redirect to login
-  if (!token) {
-    return <Navigate to="/login" />;
+  // Ensure token validation
+  if (!token || token === 'undefined' || token === '') {
+    return <Navigate to="/" />;
   }
 
-  // Fetch articles on first render
   useEffect(() => {
-    getArticles();
-  }, [getArticles]);
+    if (token) {
+      getArticles();
+    }
+  }, [token]);
+
+  console.log (articles);
 
   return (
     <div className="articles">
       <h2>Articles</h2>
-      {
-        !articles.length
-          ? <p>No articles yet</p>
-          : articles.map(art => (
-            <div className="article" key={art.article_id}>
-              <div>
-                <h3>{art.title}</h3>
-                <p>{art.text}</p>
-                <p>Topic: {art.topic}</p>
-              </div>
-              <div>
-                <button onClick={() => setCurrentArticleId(art.article_id)}>
-                  Edit
-                </button>
-                <button onClick={() => deleteArticle(art.article_id)}>
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))
-      }
+      {articles.length === 0 ? (
+        <p>No articles yet</p>
+      ) : (
+        articles.map((art) => (
+          <div key={art.article_id} className="article">
+            <h3>{art.title}</h3>
+            <p>{art.text}</p>
+            <p>Topic: {art.topic}</p>
+            <button onClick={() => setCurrentArticleId(art.article_id)}>Edit</button>
+            <button onClick={() => deleteArticle(art.article_id)}>Delete</button>
+          </div>
+        ))
+      )}
     </div>
   );
 }
 
+
 Articles.propTypes = {
-  articles: PT.arrayOf(PT.shape({ // the array can be empty
+  articles: PT.arrayOf(PT.shape({
     article_id: PT.number.isRequired,
     title: PT.string.isRequired,
     text: PT.string.isRequired,
@@ -58,5 +49,5 @@ Articles.propTypes = {
   getArticles: PT.func.isRequired,
   deleteArticle: PT.func.isRequired,
   setCurrentArticleId: PT.func.isRequired,
-  currentArticleId: PT.number, // can be undefined or null
+  currentArticleId: PT.number,
 };

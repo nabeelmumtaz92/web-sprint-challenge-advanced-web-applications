@@ -5,6 +5,7 @@ import LoginForm from './LoginForm'
 import Message from './Message'
 import ArticleForm from './ArticleForm'
 import Spinner from './Spinner'
+import axios from 'axios';
 
 const articlesUrl = 'http://localhost:9000/api/articles'
 const loginUrl = 'http://localhost:9000/api/login'
@@ -34,15 +35,17 @@ export default function App() {
   const login = ({ username, password }) => {
     setMessage ('');
     setSpinnerOn(true);
-    axios.post (loginURL, {username, password })
+
+    axios.post (loginUrl, {username, password })
       .then(response => {
         const token = response.data.token;
         localStorage.setItem('token', token);
         setMessage('Login successful!');
         redirectToArticles();
+        getArticles()
       })
-      .catch (error => {
-        setMessage (' Login failed. Please check your credentials.');
+      .catch (() => {
+        setMessage ('Login failed. Please check your credentials.');
       })
       .finally(() => {
         setSpinnerOn(false);
@@ -52,22 +55,24 @@ export default function App() {
   const getArticles = () => {
     setMessage(''); // Clear any previous messages
     setSpinnerOn(true); // Show the spinner while fetching articles
-  
     const token = localStorage.getItem('token'); // Retrieve the token from local storage
   
     axios.get(articlesUrl, {
-      headers: { Authorization: token } // Pass the token in the Authorization header
+      headers: { Authorization: token }, // Pass the token in the Authorization header
     })
-      .then(response => {
-        setArticles(response.data); // Update the articles state with the response data
-        setMessage('Articles retrieved successfully!'); // Set a success message
+      .then((response) => {
+        // Log the response to debug its structure
+        console.log('Response data:', response.data);
+        setArticles(response.data.articles); // Use the array directly
+        setMessage(response.data.message);
       })
-      .catch(error => {
+      .catch((error) => {
+        console.error('Error fetching articles:', error);
         if (error.response?.status === 401) {
-          setMessage('Session expired. Please log in again.'); // Set a message for unauthorized access
-          redirectToLogin(); // Redirect to the login page
+          setMessage('Session expired. Please log in again.');
+          redirectToLogin();
         } else {
-          setMessage('Failed to retrieve articles. Please try again.'); // General error message
+          setMessage('Failed to retrieve articles. Please try again.');
         }
       })
       .finally(() => {
@@ -86,10 +91,12 @@ export default function App() {
       headers: { Authorization: token } // Pass the token in the Authorization header
     })
       .then(response => {
-        setArticles([...articles, response.data]); // Add the new article to the state
-        setMessage('Article successfully added!'); // Set a success message
+        console.log ("postresponse",response);
+        setArticles([...articles, response.data.article]); // Add the new article to the state
+        setMessage(response.data.message); // Set a success message
+       
       })
-      .catch(error => {
+      .catch (() => {
         setMessage('Failed to add article. Please try again.'); // Set an error message
       })
       .finally(() => {
@@ -109,11 +116,11 @@ export default function App() {
     })
       .then(response => {
         setArticles(articles.map(art => 
-          art.article_id === article_id ? response.data : art // Replace updated article
+          art.article_id === article_id ? response.data.article : art // Replace updated article
         ));
-        setMessage('Article successfully updated!'); // Set a success message
+        setMessage(response.data.message); // Set a success message
       })
-      .catch(error => {
+      .catch(()=> {
         setMessage('Failed to update article. Please try again.'); // Set an error message
       })
       .finally(() => {
@@ -131,11 +138,11 @@ export default function App() {
     axios.delete(`${articlesUrl}/${article_id}`, {
       headers: { Authorization: token } // Pass the token in the Authorization header
     })
-      .then(() => {
+      .then((response) => {
         setArticles(articles.filter(art => art.article_id !== article_id)); // Remove the deleted article
-        setMessage('Article successfully deleted!'); // Set a success message
+        setMessage(response.data.message); // Set a success message
       })
-      .catch(error => {
+      .catch(() => {
         setMessage('Failed to delete article. Please try again.'); // Set an error message
       })
       .finally(() => {
@@ -160,15 +167,17 @@ export default function App() {
           <Route path="articles" element={
             <>
               <ArticleForm
-                currentArticleId={currentArticleId}
+                currentArticle = {articles.find(art=> art.article_id == currentArticleId)}
                 postArticle={postArticle}
                 updateArticle={updateArticle}
                 setCurrentArticleId={setCurrentArticleId}
               />
               <Articles
                 articles={articles}
+                getArticles={getArticles} 
                 deleteArticle={deleteArticle}
                 setCurrentArticleId={setCurrentArticleId}
+                currentArticleId={currentArticleId}
               />
             </>
           } />
