@@ -11,7 +11,7 @@ In this challenge, you will write the logic for [THIS APP](https://advanced-apps
 ❗ Other configurations might work but haven't been tested.
 
 ## Project Setup
-
+s
 - Fork, clone, and `npm install`. You won't need to add any extra libraries.
 - Launch the project in a development server executing `npm run dev`.
 - Visit your app by navigating Chrome to `http://localhost:3000`.
